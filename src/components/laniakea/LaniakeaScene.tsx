@@ -797,7 +797,7 @@ function NamedGalaxyMarker({
           occlude={false}
           zIndexRange={[30, 0]}
         >
-          <div className="pointer-events-none select-none whitespace-nowrap rounded-md border border-white/20 bg-black/80 px-2.5 py-1.5 backdrop-blur-md">
+          <div className="pointer-events-none select-none whitespace-nowrap rounded-md border border-[var(--cosmic-border)] bg-[var(--cosmic-card)] px-2.5 py-1.5 backdrop-blur-md">
             <div className="text-[11px] font-semibold text-white">
               {galaxy.name}
             </div>

@@ -52,7 +52,7 @@ export function Subtitles({
 
   return (
     <div className="pointer-events-none absolute bottom-32 left-1/2 z-30 w-full max-w-2xl -translate-x-1/2 px-4 sm:bottom-40">
-      <div className="mx-auto rounded-xl border border-white/15 bg-black/70 px-5 py-3 backdrop-blur-md">
+      <div className="mx-auto rounded-xl border border-[var(--cosmic-border)] bg-[var(--cosmic-card)] px-5 py-3 backdrop-blur-md">
         {/* Progress indicator line */}
         <div className="mb-2 flex items-center gap-2">
           <div className="h-0.5 flex-1 overflow-hidden rounded-full bg-white/10">

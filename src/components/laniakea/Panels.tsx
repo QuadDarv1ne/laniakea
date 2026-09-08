@@ -91,7 +91,7 @@ export function InfoPanel({ selection, onClose }: InfoPanelProps) {
     ];
   } else if (selection.type === "galaxy" && selection.galaxy) {
     const g = selection.galaxy;
-    title = g.name;
+    title = g.name ?? "Неизвестная галактика";
     const typeNames: Record<string, string> = {
       spiral: "Спиральная галактика",
       elliptical: "Эллиптическая галактика",
@@ -116,7 +116,7 @@ export function InfoPanel({ selection, onClose }: InfoPanelProps) {
   }
 
   return (
-    <Card className="w-full border-border/60 bg-card/80 backdrop-blur-md">
+    <Card className="w-full border-[var(--cosmic-border)] bg-[var(--cosmic-card)] backdrop-blur-md">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-center gap-2">
@@ -220,7 +220,7 @@ export function ControlPanel({
   onToggleParallax,
 }: ControlPanelProps) {
   return (
-    <Card className="border-border/60 bg-card/80 backdrop-blur-md">
+    <Card className="border-[var(--cosmic-border)] bg-[var(--cosmic-card)] backdrop-blur-md">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm font-semibold">
           <Eye className="h-4 w-4" />
@@ -397,7 +397,7 @@ interface LegendCardProps {
 
 export function LegendCard({ onShowInfo, useRealGalaxies }: LegendCardProps) {
   return (
-    <Card className="border-border/60 bg-card/80 backdrop-blur-md">
+    <Card className="border-[var(--cosmic-border)] bg-[var(--cosmic-card)] backdrop-blur-md">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm font-semibold">
           <Sparkles className="h-4 w-4 text-amber-400" />

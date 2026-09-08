@@ -538,7 +538,7 @@ export default function Home() {
   const currentStop = TOUR_STOPS[tourIndex];
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-[#02030a] text-foreground">
+    <main className="relative min-h-screen w-full overflow-hidden bg-[var(--cosmic-bg)] text-[var(--cosmic-text)]">
       {/* 3D Canvas - full screen */}
       <div className="absolute inset-0">
         <LaniakeaCanvas
@@ -595,7 +595,7 @@ export default function Home() {
       )}
 
       {/* Top gradient overlay for header legibility */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-[#02030a]/95 via-[#02030a]/60 to-transparent" />
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-linear-to-b from-[var(--cosmic-bg)]/95 via-[var(--cosmic-bg)]/60 to-transparent" />
 
       {/* Header */}
       <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
@@ -607,7 +607,7 @@ export default function Home() {
             <h1 className="text-lg font-bold tracking-tight text-white sm:text-xl">
               Ланиакея
             </h1>
-            <p className="text-[11px] text-white/60 sm:text-xs">
+            <p className="text-[11px] text-[var(--cosmic-muted)] sm:text-xs">
               Интерактивная 3D-карта сверхскопления галактик
             </p>
           </div>
@@ -896,14 +896,14 @@ export default function Home() {
             onClose={() => setSelection({ type: "none" })}
           />
         ) : (
-          <div className="hidden rounded-lg border border-white/10 bg-white/5 p-4 backdrop-blur-md sm:block">
-            <p className="text-xs leading-relaxed text-white/70">
+          <div className="hidden rounded-lg border border-[var(--cosmic-border)] bg-[var(--cosmic-card)] p-4 backdrop-blur-md sm:block">
+            <p className="text-xs leading-relaxed text-[var(--cosmic-muted)]">
               <span className="font-medium text-amber-300">Подсказка:</span>{" "}
               вращайте сцену мышью, прокрутите для зума. Нажмите на цветную
               область, великую галактику или на Великий аттрактор, чтобы узнать
               больше.
             </p>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-white/60">
+            <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] text-[var(--cosmic-muted)]">
               <div className="flex items-center gap-1.5">
                 <kbd className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] text-white/80">
                   ЛКМ
@@ -952,7 +952,7 @@ export default function Home() {
 
       {/* Tour bar */}
       <div className="pointer-events-none absolute inset-x-0 bottom-14 z-30 flex justify-center px-4 sm:bottom-16">
-        <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-white/15 bg-black/50 px-2 py-2 backdrop-blur-md sm:gap-3 sm:px-4">
+        <div className="pointer-events-auto flex items-center gap-2 rounded-full border border-[var(--cosmic-border)] bg-[var(--cosmic-card)] px-2 py-2 backdrop-blur-md sm:gap-3 sm:px-4">
           <button
             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-white/80 hover:bg-white/10 hover:text-white"
             onClick={handlePrevTour}
@@ -986,7 +986,7 @@ export default function Home() {
 
       {/* Bottom stats footer */}
       <footer className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-4 pb-4 sm:px-6 sm:pb-5">
-        <div className="pointer-events-auto mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-5 gap-y-1.5 rounded-lg border border-white/10 bg-white/5 px-4 py-2.5 backdrop-blur-md">
+        <div className="pointer-events-auto mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-5 gap-y-1.5 rounded-lg border border-[var(--cosmic-border)] bg-[var(--cosmic-card)] px-4 py-2.5 backdrop-blur-md">
           <Stat label="Диаметр" value="~520 млн св. лет" />
           <Dot />
           <Stat label="Галактик" value="~100 000" />
@@ -1079,7 +1079,7 @@ function HotkeyRow({ keys, action }: { keys: string[]; action: string }) {
         {keys.map((k, i) => (
           <kbd
             key={i}
-            className="rounded bg-white/10 px-1.5 py-0.5 text-[10px] font-medium text-white/80"
+            className="rounded bg-[var(--cosmic-border)] px-1.5 py-0.5 text-[10px] font-medium text-[var(--cosmic-muted)]"
           >
             {k}
           </kbd>

@@ -34,7 +34,7 @@ export type CompactGalaxy = [
   number, // typeIdx
   number, // velocity
   number, // magnitude
-  number?, // nameIdx (optional, index into names array)
+  ...number[], // optional nameIdx and other fields
 ];
 
 export interface CompactDataset {

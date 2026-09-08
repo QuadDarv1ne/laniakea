@@ -69,7 +69,7 @@ export interface GalaxyShaderMaterialProps {
   sizeScale?: number;
   transparent?: boolean;
   depthWrite?: boolean;
-  blending?: THREE.BlendingMode;
+  blending?: THREE.Blending;
 }
 
 export function useGalaxyShaderMaterial(

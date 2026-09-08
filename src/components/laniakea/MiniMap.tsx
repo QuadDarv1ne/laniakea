@@ -79,7 +79,7 @@ export function MiniMap({
   ];
 
   return (
-    <Card className="border-border/60 bg-card/80 backdrop-blur-md">
+    <Card className="border-[var(--cosmic-border)] bg-[var(--cosmic-card)] backdrop-blur-md">
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-xs font-semibold">
           <Navigation2 className="h-3.5 w-3.5 text-sky-300" />
@@ -88,7 +88,7 @@ export function MiniMap({
       </CardHeader>
       <CardContent className="pb-3">
         <div
-          className="relative mx-auto rounded-md border border-white/10 bg-[#02030a]"
+          className="relative mx-auto rounded-md border border-[var(--cosmic-border)] bg-[var(--cosmic-bg)]"
           style={{ width: MAP_SIZE, height: MAP_SIZE }}
         >
           {/* SVG mini-map */}

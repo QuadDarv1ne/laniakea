@@ -45,6 +45,7 @@
 
 :root {
   --radius: 0.625rem;
+  /* Light theme (default, used for dialogs/modals) */
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -79,6 +80,7 @@
 }
 
 .dark {
+  /* Dark theme (for dialogs/modals) */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);
@@ -112,11 +114,48 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Space/Cosmic theme — used for the main 3D canvas overlay */
+:root,
+.dark {
+  --cosmic-bg: #02030a;
+  --cosmic-text: #ffffff;
+  --cosmic-muted: rgba(255, 255, 255, 0.6);
+  --cosmic-border: rgba(255, 255, 255, 0.1);
+  --cosmic-card: rgba(255, 255, 255, 0.05);
+  --cosmic-card-foreground: rgba(255, 255, 255, 0.9);
+  --cosmic-muted-foreground: rgba(255, 255, 255, 0.5);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Space theme utility classes */
+  .space-bg {
+    background-color: var(--cosmic-bg);
+  }
+  .space-text {
+    color: var(--cosmic-text);
+  }
+  .space-muted {
+    color: var(--cosmic-muted);
+  }
+  .space-border {
+    border-color: var(--cosmic-border);
+  }
+  .space-card {
+    background-color: var(--cosmic-card);
+  }
+  .space-card-foreground {
+    color: var(--cosmic-card-foreground);
+  }
+  .space-muted-foreground {
+    color: var(--cosmic-muted-foreground);
   }
 }

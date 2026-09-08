@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Buffer } from "buffer";
 
 // TTS API endpoint that mirrors the FreeTTS.ru approach.
 // FreeTTS.ru uses Yandex SpeechKit under the hood, which provides the
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
     const cacheKey = trimmed;
     const cached = cacheGet(cacheKey);
     if (cached) {
-      return new NextResponse(cached.audio, {
+      return new NextResponse(cached.audio as unknown as BodyInit, {
         status: 200,
         headers: {
           "Content-Type": cached.contentType,
@@ -122,7 +123,7 @@ export async function POST(req: NextRequest) {
     }
 
     cacheSet(cacheKey, result);
-    return new NextResponse(result.audio, {
+    return new NextResponse(result.audio as unknown as BodyInit, {
       status: 200,
       headers: {
         "Content-Type": result.contentType,

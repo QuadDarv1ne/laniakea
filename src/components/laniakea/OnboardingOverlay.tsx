@@ -101,7 +101,7 @@ export function OnboardingOverlay({ onTourStart }: OnboardingOverlayProps) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-      <div className="relative w-full max-w-md rounded-2xl border border-white/15 bg-[#0a0d1a] p-6 shadow-2xl">
+      <div className="relative w-full max-w-md rounded-2xl border border-[var(--cosmic-border)] bg-[var(--cosmic-bg)] p-6 shadow-2xl">
         {/* Close button */}
         <Button
           variant="ghost"
@@ -131,7 +131,7 @@ export function OnboardingOverlay({ onTourStart }: OnboardingOverlayProps) {
 
         {/* Step content */}
         <div className="flex flex-col items-center text-center">
-          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-white/10 bg-white/5">
+          <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[var(--cosmic-border)] bg-[var(--cosmic-card)]">
             <Icon className={`h-8 w-8 ${currentStep.color}`} />
           </div>
           <h2 className="mb-2 text-lg font-bold text-white">
