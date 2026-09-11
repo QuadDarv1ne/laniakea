@@ -6,111 +6,16 @@
   <img src="https://img.shields.io/badge/Three.js-0.185-black?style=for-the-badge&logo=three.js" alt="Three.js">
 </p>
 
-<h1 align="center">🎓 Maestria</h1>
+<h1 align="center">🌌 Ланиакея</h1>
 
 <p align="center">
-  <strong>by Maestro7IT</strong><br>
-  Образовательная LMS-платформа · Educational LMS Platform
+  <strong>Интерактивная 3D-карта сверхскопления галактик</strong><br>
+  Interactive 3D map of the Laniakea supercluster of galaxies
 </p>
 
 <p align="center">
-  <a href="#english">English</a> · <a href="#русский">Русский</a>
+  <a href="#русский">Русский</a> · <a href="#english">English</a>
 </p>
-
----
-
-<a id="english"></a>
-
-## About
-
-**Maestria** is a full-featured Learning Management System (LMS) built on **Next.js 16 + React 19 + TypeScript + Tailwind CSS 4**. It provides tools for creating, taking, and managing online courses, tracking student progress, and analytics.
-
-The project is developed by **Maestro7IT** under the direction of **Dupley Maxim Igorevich** and is designed for use in the Russian Federation with full compliance with RF legislation on education and personal data protection.
-
-> 📖 [Full English documentation →](README_EN.md)
-
-## Key Features
-
-### For Students
-- **34 courses** in programming, web development, Data Science, game dev, and more
-- Step-by-step lesson viewer (Step Viewer) with interactive elements
-- Tests and assignments with auto-grading
-- Learning progress tracking and completion certificates
-- Achievement system, notifications, and favorite courses
-
-### For Teachers
-- **Course Editor** — create and edit course materials
-- Module and lesson management
-- Student statistics and review moderation
-
-### For Administrators
-- **Secured admin panel** (`#admin`) with 9 sections: Dashboard, Users, Tests, Materials, Finance, Courses, Reports, Logs, Settings
-- **4 SVG chart types**: Line, Bar, Donut, Sparkline
-- User management (roles, blocking, 2FA)
-- Financial analytics and platform activity logs
-
-### Platform Features
-- **Laniakea 3D Scene** — interactive supercluster galaxy visualization (Three.js + React Three Fiber)
-- **3 themes**: Light, Dark, Amber (oklch colors)
-- **3 languages**: Russian 🇷🇺 · English 🇬🇧 · 中文 🇨🇳
-- Custom cursor with smooth follow (pointer:fine)
-- 10 legal pages compliant with RF legislation
-- Responsive design (mobile · tablet · desktop)
-
-## Tech Stack
-
-| Layer | Technologies |
-|---|---|
-| **Framework** | Next.js 16 · React 19 · TypeScript 5 |
-| **Styling** | Tailwind CSS 4 · Tailwind Animate · OKLCH |
-| **3D** | Three.js · @react-three/fiber · drei · postprocessing |
-| **UI** | shadcn/ui (40+ components) · Radix UI · Lucide Icons |
-| **State** | Zustand · React Query · TanStack Table |
-| **Forms** | React Hook Form · Zod v4 |
-| **Database** | Prisma ORM · SQLite |
-| **Auth** | NextAuth.js v4 (2FA) |
-| **i18n** | next-intl (ru / en / zh) |
-| **Build** | Bun · Caddy |
-
-## Installation & Setup
-
-```bash
-# Clone
-git clone https://github.com/Maestro7IT/laniakea.git
-cd laniakea
-
-# Install
-bun install
-
-# Setup database
-bun db:generate
-bun db:push
-
-# Run
-bun dev
-# → http://localhost:3000
-```
-
-See [README_EN.md](README_EN.md) for full instructions.
-
-## Admin Panel
-
-Route: `#admin` (admin role only)
-
-**Login password**: `admin` or `Maestria2026`
-
-## License
-
-| Component | License |
-|---|---|
-| **User Content** | [CC BY-SA 4.0](LICENSE) |
-| **Platform Software** | © Maestro7IT, all rights reserved |
-
-## Contacts
-
-- **Email**: maksimqwe42@mail.ru
-- **Address**: Moscow, Russian Federation
-- **Platform**: [maestria.ru](https://maestria.ru)
 
 ---
 
@@ -118,82 +23,98 @@ Route: `#admin` (admin role only)
 
 ## О проекте
 
-**Maestria** — это современная образовательная платформа (LMS), разработанная на стеке **Next.js 16 + React 19 + TypeScript + Tailwind CSS 4**. Платформа предоставляет полный набор инструментов для создания, прохождения и управления онлайн-курсами, отслеживания прогресса студентов и аналитики.
+**Ланиакея** — одностраничное приложение на **Next.js 16 + React 19 + TypeScript +
+Three.js**, визуализирующее сверхскопление галактик Ланиакея в 3D. Модель построена
+по мотивам каталога собственных движений галактик **Cosmicflows** (Tully et al. 2014)
+и показывает четыре региона сверхскопления, Великий аттрактор, положение Млечного Пути
+и потоки галактик к гравитационному центру.
 
-Проект **Maestro7IT** создан под руководством **Дуплея Максима Игоревича** и предназначен для использования на территории Российской Федерации с полным соответствием законодательству РФ в сфере образования и защиты персональных данных.
+Сцена работает целиком в браузере: данные отдаются статически, внешние сервисы не
+требуются. Эмбиент синтезируется процедурно через Web Audio API, без аудиофайлов.
 
 > 📖 [Полная документация на русском →](README_RU.md)
 
-## Ключевые возможности
+## Что внутри
 
-### Для студентов
-- **34 курса** по программированию, веб-разработке, Data Science, геймдеву и другим направлениям
-- **Пошаговый просмотр уроков** (Step Viewer) с интерактивными элементами
-- **Тесты и задания** с автоматической проверкой
-- **Прогресс обучения** и сертификаты по завершении
-- **Система достижений**, уведомления и избранные курсы
+- **Тур из 7 точек** — Обзор Ланиакеи · Млечный Путь · Великий аттрактор · Гидра-Центавр ·
+  Павлин-Индеец · Южное сверхскопление · Местное сверхскопление
+- **Закадровый голос на русском** с субтитрами: Yandex SpeechKit либо резервный
+  Web Speech API, если ключи не заданы
+- **~18 000 галактик** с сверхгалактическими координатами и **20 именованных объектов**
+  с публикационными координатами
+- **4 региона**, Великий аттрактор, анимированные потоки, **фон из 4 000 звёзд**
+- **Постобработка**: Bloom, Vignette, SMAA
+- **Мини-карта**, **масштабная линейка в Мпк**, панель слоёв, легенда
+- **Таймлайн открытий** (15 событий, 1924–2014) и **сравнение с 5 сверхскоплениями**
+- **Скриншот в PNG**, **ссылка на текущий вид**, **экспорт тура в JSON**
+- Горячие клавиши с поддержкой русской и латинской раскладки
 
-### Для преподавателей
-- **Редактор курсов** — создание и редактирование материалов
-- Управление модулями и уроками
-- Статистика по студентам и модерация отзывов
+## Стек
 
-### Для администраторов
-- **Закрытая панель администратора** (`#admin`) — 9 секций: Дашборд · Пользователи · Тесты · Материалы · Финансы · Курсы · Жалобы · Логи · Настройки
-- **4 типа SVG-графиков**: линейный, столбчатый, кольцевая диаграмма, спарклайн
-- Управление пользователями (роли, блокировка, 2FA)
-- Финансовая аналитика и журнал действий
+| Слой | Технологии |
+|---|---|
+| **Фреймворк** | Next.js 16 · React 19 · TypeScript 5 |
+| **3D** | Three.js 0.185 · @react-three/fiber · drei · postprocessing |
+| **Стиль** | Tailwind CSS 4 · OKLCH |
+| **UI** | shadcn/ui · Radix UI · Lucide Icons |
+| **Сборка** | Bun · вывод `standalone` · Caddy |
 
-### Визуальные и платформенные функции
-- **3D-сцена «Ланиакея»** — интерактивная визуализация сверхскопления галактик (Three.js + React Three Fiber)
-- **3 темы**: светлая, тёмная, янтарная (oklch-цвета)
-- **3 языка**: Русский 🇷🇺 · English 🇬🇧 · 中文 🇨🇳
-- Кастомный курсор с плавным следованием
-- 10 юридических страниц по законодательству РФ
-- Адаптивный дизайн (мобильные · планшеты · десктоп)
-
-## Установка и запуск
+## Быстрый старт
 
 ```bash
-# Клонирование
-git clone https://github.com/Maestro7IT/laniakea.git
+git clone https://github.com/QuadDarv1ne/laniakea.git
 cd laniakea
-
-# Установка
 bun install
-
-# Настройка базы данных
-bun db:generate
-bun db:push
-
-# Запуск
 bun dev
 # → http://localhost:3000
 ```
 
-См. [README_RU.md](README_RU.md) для полной инструкции.
-
-## Админ-панель
-
-Маршрут: `#admin` (только роль `admin`)
-
-**Пароль для входа**: `admin` или `Maestria2026`
-
-## Лицензия
-
-| Компонент | Лицензия |
-|---|---|
-| **Пользовательский контент** | [CC BY-SA 4.0](LICENSE) |
-| **Программное обеспечение платформы** | © Maestro7IT, все права защищены |
-
-## Контакты
-
-- **Email**: maksimqwe42@mail.ru
-- **Адрес**: г. Москва, Российская Федерация
-- **Платформа**: [maestria.ru](https://maestria.ru)
+База данных не требуется. Переменные окружения необязательны.
 
 ---
 
-<p align="center">
-  <strong>Maestria</strong> · Maestro7IT · Moscow, Russia
-</p>
+<a id="english"></a>
+
+## About
+
+**Laniakea** is a single-page **Next.js 16 + React 19 + TypeScript + Three.js** app that
+renders the Laniakea supercluster of galaxies in 3D. The model follows the Cosmicflows
+peculiar-velocity catalogue (Tully et al. 2014) and shows the four regions of the
+supercluster, the Great Attractor, the position of the Milky Way, and the galaxy flows
+toward the gravitational centre.
+
+The scene runs entirely in the browser: data is served statically and no external
+service is required. The ambient soundtrack is synthesised procedurally with the
+Web Audio API, without any audio files.
+
+> 📖 [Full English documentation →](README_EN.md)
+
+## Highlights
+
+- **Guided tour of 7 stops** — Overview · Milky Way · Great Attractor · Hydra-Centaurus ·
+  Pavo-Indus · Southern Supercluster · Local Supercluster
+- **Russian voice-over** with subtitles: Yandex SpeechKit, falling back to the browser
+  Web Speech API when no keys are configured
+- **~18,000 galaxies** in supergalactic coordinates plus **20 named objects** with
+  published coordinates
+- **4 regions**, the Great Attractor, animated flows, **4,000 background stars**
+- **Postprocessing**: Bloom, Vignette, SMAA
+- **Mini-map**, **scale ruler in Mpc**, layer panel, legend
+- **Timeline of discoveries** (15 events, 1924–2014) and **comparison of 5 superclusters**
+- **PNG screenshot**, **shareable view URL**, **tour export to JSON**
+
+## Quick start
+
+```bash
+git clone https://github.com/QuadDarv1ne/laniakea.git
+cd laniakea
+bun install
+bun dev
+# → http://localhost:3000
+```
+
+No database is required and environment variables are optional.
+
+## License
+
+See [LICENSE](LICENSE).

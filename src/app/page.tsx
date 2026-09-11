@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
 import * as THREE from "three";
 import { LaniakeaCanvas, TOUR_POINTS } from "@/components/laniakea/LaniakeaCanvas";
 import {
@@ -75,9 +74,6 @@ const FLY_TO_TOUR_INDEX: Record<string, number> = {
 const r1 = (n: number) => Math.round(n * 10) / 10;
 
 export default function Home() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-
   const [visibleRegions, setVisibleRegions] =
     useState<Record<RegionKey, boolean>>(INITIAL_REGIONS);
   const [showNeighbor, setShowNeighbor] = useState(false);
@@ -706,8 +702,8 @@ export default function Home() {
             onClick={toggleAmbient}
             title={
               ambientEnabled
-                ? "Выключить космический ambuent"
-                : "Включить космический ambuent (звук космоса)"
+                ? "Выключить космический эмбиент"
+                : "Включить космический эмбиент (звук космоса)"
             }
           >
             <Music className="mr-1.5 h-3.5 w-3.5" />

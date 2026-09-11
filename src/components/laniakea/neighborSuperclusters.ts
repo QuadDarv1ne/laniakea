@@ -105,7 +105,7 @@ export const NEIGHBOR_SUPERCLUSTERS: NeighborSupercluster[] = [
     name: "Центаур (Pavo-Indus-Telescopium)",
     englishName: "Pavo-Indus-Telescopium Supercluster",
     description:
-      "Массивное сверхскопление за Ланикеей. Частично перекрывается с нашим сверхскоплением в проекции.",
+      "Массивное сверхскопление за Ланиакеей. Частично перекрывается с нашим сверхскоплением в проекции.",
     distanceMpc: 180,
     diameterMpc: 130,
     galaxyCount: "~3000",
@@ -116,7 +116,7 @@ export const NEIGHBOR_SUPERCLUSTERS: NeighborSupercluster[] = [
     features: [
       "Часть Южной Стены галактик",
       "Содержит скопления Павлина и Индейца",
-      "Связан с Ланикеей нитью галактик",
+      "Связан с Ланиакеей нитью галактик",
     ],
   },
 ];

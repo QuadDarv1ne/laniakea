@@ -179,6 +179,7 @@ function Starfield({ count = 4000 }: { count?: number }) {
           opacity={0.45}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
+          fog={false}
         />
       </points>
       <points>
@@ -197,6 +198,7 @@ function Starfield({ count = 4000 }: { count?: number }) {
           opacity={0.85}
           depthWrite={false}
           blending={THREE.AdditiveBlending}
+          fog={false}
         />
       </points>
     </group>
