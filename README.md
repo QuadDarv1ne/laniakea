@@ -21,6 +21,20 @@
 
 <a id="русский"></a>
 
+![preview_2](img/preview_2.png)
+
+![preview](img/preview.png)
+
+![alt text](img/img_1.png)
+
+![alt text](img/img_2.png)
+
+![alt text](img/img_3.png)
+
+![alt text](img/img_4.png)
+
+![alt text](img/img_5.png)
+
 ## О проекте
 
 **Ланиакея** — одностраничное приложение на **Next.js 16 + React 19 + TypeScript +
