@@ -50,5 +50,10 @@ test
 prompt
 
 server.log
+
+# temporary verification scripts
+screenshot.tmp.mjs
+shot-*.png
+
 # Skills directory
 /skills/
