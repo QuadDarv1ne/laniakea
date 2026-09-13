@@ -130,78 +130,271 @@ function buildRealGalaxyField(galaxies: Galaxy[]) {
   };
 }
 
+const backgroundVertexShader = /* glsl */ `
+  varying vec3 vDir;
+  void main() {
+    vDir = normalize(position);
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+  }
+`;
+
+const backgroundFragmentShader = /* glsl */ `
+  varying vec3 vDir;
+  uniform vec3 uTop;
+  uniform vec3 uBottom;
+  uniform vec3 uAccent;
+
+  void main() {
+    float t = clamp(vDir.y * 0.5 + 0.5, 0.0, 1.0);
+    vec3 col = mix(uBottom, uTop, smoothstep(0.0, 1.0, t));
+
+    // Faint nebula band along the supergalactic plane (the "pancake" of Laniakea)
+    float band = exp(-abs(vDir.y) * 5.0);
+    col += uAccent * band * 0.35;
+
+    gl_FragColor = vec4(col, 1.0);
+  }
+`;
+
 /**
- * Background starfield - sparse points across a large sphere shell.
+ * Deep-space background: a huge inside-out sphere with a subtle vertical
+ * gradient and a faint glow band along the galactic plane. Replaces the flat
+ * #02030a clear color with something that has depth. Rendered first
+ * (renderOrder = -1) and never affected by fog so it stays crisp.
  */
-function Starfield({ count = 4000 }: { count?: number }) {
-  const positions = useMemo(() => {
-    const arr = new Float32Array(count * 3);
+function CosmicBackground() {
+  const material = useMemo(
+    () =>
+      new THREE.ShaderMaterial({
+        uniforms: {
+          uTop: { value: new THREE.Color("#060821") },
+          uBottom: { value: new THREE.Color("#01020a") },
+          uAccent: { value: new THREE.Color("#160f2e") },
+        },
+        vertexShader: backgroundVertexShader,
+        fragmentShader: backgroundFragmentShader,
+        side: THREE.BackSide,
+        depthWrite: false,
+        fog: false,
+      }),
+    [],
+  );
+
+  return (
+    <mesh material={material} renderOrder={-10} frustumCulled={false}>
+      <sphereGeometry args={[280, 32, 24]} />
+    </mesh>
+  );
+}
+
+const nebulaVertexShader = /* glsl */ `
+  attribute float size;
+  attribute vec3 color;
+  attribute float seed;
+
+  varying vec3 vColor;
+  varying float vSeed;
+
+  uniform float uPixelRatio;
+
+  void main() {
+    vColor = color;
+    vSeed = seed;
+    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+    gl_Position = projectionMatrix * mvPosition;
+    gl_PointSize = size * uPixelRatio * (300.0 / -mvPosition.z);
+  }
+`;
+
+const nebulaFragmentShader = /* glsl */ `
+  varying vec3 vColor;
+  varying float vSeed;
+
+  uniform float uTime;
+
+  void main() {
+    vec2 uv = gl_PointCoord * 2.0 - 1.0;
+    float dist = length(uv);
+    if (dist > 1.0) discard;
+
+    // Very soft, wide falloff — nebulae are diffuse, not point-like
+    float alpha = pow(1.0 - dist, 3.0) * 0.045;
+
+    // Slow "breathing" so the fog feels alive but never distracting
+    float breath = 0.75 + 0.25 * sin(uTime * 0.12 + vSeed * 6.2831);
+    alpha *= breath;
+
+    gl_FragColor = vec4(vColor, alpha);
+  }
+`;
+
+/**
+ * Diffuse intergalactic nebulae along the supergalactic plane.
+ * Huge, very faint additive sprites that add depth between the galaxies.
+ * Deliberately subtle — they should be felt, not seen as objects.
+ */
+function Nebulae({ count = 48 }: { count?: number }) {
+  const materialRef = useRef<THREE.ShaderMaterial>(null);
+
+  const { positions, colors, sizes, seeds, uniforms } = useMemo(() => {
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
+    const seeds = new Float32Array(count);
+
+    // Palette of faint intergalactic gas tints
+    const palette = [
+      new THREE.Color("#1a1038"), // deep violet
+      new THREE.Color("#0c1e3c"), // cold blue
+      new THREE.Color("#0d2e2a"), // teal
+      new THREE.Color("#301a12"), // warm dust
+    ];
+
     for (let i = 0; i < count; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
-      const r = 80 + Math.random() * 80;
-      arr[i * 3 + 0] = r * Math.sin(phi) * Math.cos(theta);
-      arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      arr[i * 3 + 2] = r * Math.cos(phi);
+      const r = 8 + Math.random() * 26;
+      // Flatten onto the supergalactic "pancake" (same 0.5 Y factor as galaxies)
+      positions[i * 3 + 0] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.5 * 0.4;
+      positions[i * 3 + 2] = r * Math.cos(phi);
+
+      const c = palette[Math.floor(Math.random() * palette.length)];
+      colors[i * 3 + 0] = c.r;
+      colors[i * 3 + 1] = c.g;
+      colors[i * 3 + 2] = c.b;
+
+      sizes[i] = 18 + Math.random() * 26;
+      seeds[i] = Math.random();
     }
-    return arr;
+    return {
+      positions,
+      colors,
+      sizes,
+      seeds,
+      uniforms: {
+        uTime: { value: 0 },
+        uPixelRatio: {
+          value:
+            typeof window !== "undefined"
+              ? Math.min(window.devicePixelRatio, 2)
+              : 1,
+        },
+      },
+    };
   }, [count]);
 
-  const positions2 = useMemo(() => {
-    const n = Math.floor(count / 6);
-    const arr = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) {
+  useFrame(({ clock }) => {
+    if (materialRef.current) {
+      materialRef.current.uniforms.uTime.value = clock.getElapsedTime();
+    }
+  });
+
+  return (
+    <points renderOrder={-2} frustumCulled={false}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[positions, 3]}
+          count={positions.length / 3}
+        />
+        <bufferAttribute
+          attach="attributes-color"
+          args={[colors, 3]}
+          count={colors.length / 3}
+        />
+        <bufferAttribute
+          attach="attributes-size"
+          args={[sizes, 1]}
+          count={sizes.length}
+        />
+        <bufferAttribute
+          attach="attributes-seed"
+          args={[seeds, 1]}
+          count={seeds.length}
+        />
+      </bufferGeometry>
+      <shaderMaterial
+        ref={materialRef}
+        uniforms={uniforms}
+        vertexShader={nebulaVertexShader}
+        fragmentShader={nebulaFragmentShader}
+        transparent
+        depthWrite={false}
+        blending={THREE.AdditiveBlending}
+      />
+    </points>
+  );
+}
+
+/**
+ * Realistic stellar color distribution (simplified B-V spectral classes).
+ * Most stars are cool (K/M), only a few are hot blue O/B giants.
+  */
+function starColor(rand: number): THREE.Color {
+  if (rand < 0.02) return new THREE.Color("#9bb2ff"); // O/B — blue giants
+  if (rand < 0.10) return new THREE.Color("#aabfff"); // A — blue-white
+  if (rand < 0.25) return new THREE.Color("#cad8ff"); // F — white
+  if (rand < 0.45) return new THREE.Color("#fff4e8"); // G — sun-like
+  if (rand < 0.70) return new THREE.Color("#ffd2a1"); // K — orange
+  return new THREE.Color("#ffb56b"); // M — red dwarfs
+}
+
+/**
+ * Background starfield — round soft sprites with realistic stellar colors.
+ * Uses the same custom shader as galaxies (no square pixels), plus a small
+ * fraction of bright "hero" stars that get diffraction spikes from the shader.
+ */
+function Starfield({ count = 4000 }: { count?: number }) {
+  const { positions, colors, sizes } = useMemo(() => {
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
+
+    for (let i = 0; i < count; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos(2 * Math.random() - 1);
-      const r = 60 + Math.random() * 30;
-      arr[i * 3 + 0] = r * Math.sin(phi) * Math.cos(theta);
-      arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
-      arr[i * 3 + 2] = r * Math.cos(phi);
+      // Two shells: a dense inner shell (60-90) and a sparse outer (80-160)
+      const r =
+        i % 6 === 0 ? 80 + Math.random() * 80 : 60 + Math.random() * 30;
+      positions[i * 3 + 0] = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+      positions[i * 3 + 2] = r * Math.cos(phi);
+
+      // Color by spectral class
+      const c = starColor(Math.random());
+      colors[i * 3 + 0] = c.r;
+      colors[i * 3 + 1] = c.g;
+      colors[i * 3 + 2] = c.b;
+
+      // Size: mostly dim, ~4% are bright "hero" stars (get diffraction spikes)
+      const isHero = Math.random() < 0.04;
+      sizes[i] = isHero ? 1.6 + Math.random() * 1.2 : 0.25 + Math.random() * 0.55;
     }
-    return arr;
+    return { positions, colors, sizes };
   }, [count]);
 
   return (
-    <group>
-      <points>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[positions, 3]}
-            count={positions.length / 3}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          color="#ffffff"
-          size={0.16}
-          sizeAttenuation
-          transparent
-          opacity={0.45}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          fog={false}
+    <points>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[positions, 3]}
+          count={positions.length / 3}
         />
-      </points>
-      <points>
-        <bufferGeometry>
-          <bufferAttribute
-            attach="attributes-position"
-            args={[positions2, 3]}
-            count={positions2.length / 3}
-          />
-        </bufferGeometry>
-        <pointsMaterial
-          color="#cde7ff"
-          size={0.32}
-          sizeAttenuation
-          transparent
-          opacity={0.85}
-          depthWrite={false}
-          blending={THREE.AdditiveBlending}
-          fog={false}
+        <bufferAttribute
+          attach="attributes-color"
+          args={[colors, 3]}
+          count={colors.length / 3}
         />
-      </points>
-    </group>
+        <bufferAttribute
+          attach="attributes-size"
+          args={[sizes, 1]}
+          count={sizes.length}
+        />
+      </bufferGeometry>
+      <GalaxyShaderPointsMaterial sizeScale={0.4} twinkle={0.18} />
+    </points>
   );
 }
 
@@ -462,7 +655,7 @@ function FlowLines({ count = 22 }: { count?: number }) {
 
   const { lineObjects, materials, particleObjs, particles } = useMemo(() => {
     const lines: THREE.Line[] = [];
-    const mats: THREE.LineDashedMaterial[] = [];
+    const mats: THREE.LineBasicMaterial[] = [];
     const parts: {
       mesh: THREE.Mesh;
       curve: THREE.CatmullRomCurve3;
@@ -497,18 +690,31 @@ function FlowLines({ count = 22 }: { count?: number }) {
         );
       const curve = new THREE.CatmullRomCurve3([start, mid, end]);
       const pts = curve.getPoints(60);
+
+      // Glowing gradient trail: dim at the source, brightening toward the
+      // attractor. With additive blending, darker = more transparent, so a
+      // per-vertex color gradient gives a smooth light-streak look.
       const g = new THREE.BufferGeometry().setFromPoints(pts);
-      const m = new THREE.LineDashedMaterial({
-        color: new THREE.Color("#ffd6a5"),
+      const lineColors = new Float32Array(pts.length * 3);
+      const base = new THREE.Color("#ffd6a5");
+      for (let j = 0; j < pts.length; j++) {
+        const u = j / (pts.length - 1);
+        const glow = 0.12 + 0.88 * Math.pow(u, 1.8);
+        lineColors[j * 3 + 0] = base.r * glow;
+        lineColors[j * 3 + 1] = base.g * glow;
+        lineColors[j * 3 + 2] = base.b * glow;
+      }
+      g.setAttribute("color", new THREE.BufferAttribute(lineColors, 3));
+
+      const m = new THREE.LineBasicMaterial({
+        vertexColors: true,
         transparent: true,
-        opacity: 0.4,
-        dashSize: 0.5,
-        gapSize: 0.45,
+        opacity: 0.5,
+        blending: THREE.AdditiveBlending,
         depthWrite: false,
       });
       m.userData.offset = (i * 0.13) % 1;
       const line = new THREE.Line(g, m);
-      line.computeLineDistances();
       lines.push(line);
       mats.push(m);
 
@@ -617,6 +823,26 @@ function MilkyWayMarker({
 
   return (
     <group position={position}>
+      {/* Detailed barred-spiral disc (Milky Way is type SBbc) */}
+      <group scale={2.4}>
+        <SpiralGalaxy
+          particleCount={7000}
+          armCount={2}
+          armTwist={3.8}
+          discSize={1.5}
+          bulgeSize={0.35}
+          barFraction={0.2}
+          barLength={0.32}
+          dustFraction={0.25}
+          dustOpacity={0.65}
+          // Negative rotation = clockwise when viewed from above (north
+          // galactic pole), matching the real Milky Way rotation direction.
+          rotationSpeed={-0.15}
+          tilt={0.35}
+        />
+      </group>
+
+      {/* Bright nucleus (also the click target) */}
       <mesh
         ref={coreRef}
         onClick={(e) => {
@@ -631,26 +857,26 @@ function MilkyWayMarker({
           document.body.style.cursor = "auto";
         }}
       >
-        <sphereGeometry args={[0.35, 24, 24]} />
-        <meshBasicMaterial color="#e8f4ff" toneMapped={false} />
+        <sphereGeometry args={[0.18, 24, 24]} />
+        <meshBasicMaterial color="#fff8e8" toneMapped={false} />
       </mesh>
       <mesh ref={haloRef}>
-        <sphereGeometry args={[0.5, 24, 24]} />
+        <sphereGeometry args={[0.3, 24, 24]} />
         <meshBasicMaterial
-          color="#7ec8ff"
+          color="#ffe9c4"
           transparent
-          opacity={0.5}
+          opacity={0.4}
           side={THREE.BackSide}
           depthWrite={false}
           toneMapped={false}
         />
       </mesh>
       <mesh ref={halo2Ref}>
-        <sphereGeometry args={[0.5, 24, 24]} />
+        <sphereGeometry args={[0.45, 24, 24]} />
         <meshBasicMaterial
-          color="#5db0ff"
+          color="#a8d8ff"
           transparent
-          opacity={0.15}
+          opacity={0.12}
           side={THREE.BackSide}
           depthWrite={false}
           toneMapped={false}
@@ -670,7 +896,7 @@ function MilkyWayMarker({
 
       {showLabel && (
         <Html
-          position={[0, 1.8, 0]}
+          position={[0, 4.8, 0]}
           center
           distanceFactor={28}
           occlude={false}
@@ -743,6 +969,8 @@ function NamedGalaxyMarker({
             armTwist={3.5}
             discSize={1.6}
             bulgeSize={0.4}
+            barFraction={0.12}
+            barLength={0.28}
             // Negative rotation = clockwise when viewed from above (north galactic pole).
             // The Milky Way rotates clockwise as seen from the north pole,
             // which is how we see it from inside (Sun orbits counter-clockwise
@@ -975,6 +1203,8 @@ export function LaniakeaScene({
 
   return (
     <>
+      <CosmicBackground />
+      <Nebulae />
       <Starfield count={4000} />
 
       <ambientLight intensity={0.35} />

@@ -32,6 +32,7 @@ const vertexShader = /* glsl */ `
   attribute float aRadius;
   attribute float aArmOffset;
   attribute float aIsDust; // 0.0 = star, 1.0 = dust particle
+  attribute float aIsBar;  // 1.0 = bar star (rigid rotation, old population)
 
   varying vec3 vColor;
   varying float vBrightness;
@@ -50,8 +51,14 @@ const vertexShader = /* glsl */ `
     // Normalize radius [0..1] where 0 = center, 1 = edge
     float r = aRadius;
 
-    // Differential rotation: inner rotates faster (like real galaxies)
-    float angVel = uRotationSpeed / max(0.1, sqrt(r + 0.05));
+    // Differential rotation: inner rotates faster (like real galaxies).
+    // Bar stars rotate rigidly (a bar is a coherent structure, not a density wave).
+    float angVel;
+    if (aIsBar > 0.5) {
+      angVel = uRotationSpeed * 0.85;
+    } else {
+      angVel = uRotationSpeed / max(0.1, sqrt(r + 0.05));
+    }
     float angle = aArmOffset + uTime * angVel;
 
     // Dust lanes: offset dust particles slightly behind the arm
@@ -79,6 +86,9 @@ const vertexShader = /* glsl */ `
     float light = mix(0.85, 0.6, r) + aRandom * 0.1;
     vec3 starColor = hsl2rgb(vec3(hue, sat, light));
 
+    // Bar stars: old reddish-yellow population (bars are made of old stars)
+    vec3 barColor = hsl2rgb(vec3(0.11, 0.55, 0.72 + aRandom * 0.12));
+
     // Dust color: dark reddish-brown (interstellar dust reddens light)
     vec3 dustColor = vec3(0.15, 0.08, 0.04);
 
@@ -91,6 +101,11 @@ const vertexShader = /* glsl */ `
       vBrightness = armBrightness * 0.3 + 0.1;
       vColor = dustColor;
       vIsDust = 1.0;
+    } else if (aIsBar > 0.5) {
+      // Bar: moderately bright old stars
+      vBrightness = 0.45 + bulgeBrightness * 0.5 + 0.3;
+      vColor = barColor * vBrightness;
+      vIsDust = 0.0;
     } else {
       // Star: bright, colorful
       vBrightness = armBrightness * 0.5 + bulgeBrightness + 0.3;
@@ -154,6 +169,10 @@ export interface SpiralGalaxyProps {
   dustFraction?: number;
   // Opacity of dust lanes (0..1)
   dustOpacity?: number;
+  // Fraction of stars forming the central bar (0 = no bar, SB galaxies ~0.2)
+  barFraction?: number;
+  // Bar half-length as a fraction of the disc radius (0..1)
+  barLength?: number;
 }
 
 /**
@@ -173,6 +192,8 @@ export function SpiralGalaxy({
   tilt = 0.3,
   dustFraction = 0.2,
   dustOpacity = 0.6,
+  barFraction = 0,
+  barLength = 0.3,
 }: SpiralGalaxyProps) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
 
@@ -182,21 +203,34 @@ export function SpiralGalaxy({
     const armOffsets = new Float32Array(particleCount);
     const randoms = new Float32Array(particleCount);
     const isDust = new Float32Array(particleCount);
+    const isBar = new Float32Array(particleCount);
 
     for (let i = 0; i < particleCount; i++) {
-      // Radius: bias toward center (power distribution)
-      const r = Math.pow(Math.random(), 0.6);
-      radii[i] = r;
-
-      // Arm offset: logarithmic spiral
-      const armIndex = Math.floor(Math.random() * armCount);
-      const baseAngle = (armIndex / armCount) * Math.PI * 2;
-      const twist = armTwist * Math.log(r + 0.1);
-      // Dust particles have tighter scatter (sharper lanes), stars are more diffuse
       const isThisDust = Math.random() < dustFraction;
-      const scatterRange = isThisDust ? 0.25 : 0.6;
-      const scatter = (Math.random() - 0.5) * scatterRange * (1.0 - r * 0.5);
-      armOffsets[i] = baseAngle + twist + scatter;
+      const isThisBar = !isThisDust && barFraction > 0 && Math.random() < barFraction;
+
+      if (isThisBar) {
+        // Bar star: confined to a thin rectangle through the center,
+        // aligned along angle 0 / π (the shader rotates it rigidly)
+        radii[i] = 0.06 + Math.random() * (barLength - 0.06);
+        const side = Math.random() < 0.5 ? 0 : Math.PI;
+        armOffsets[i] = side + (Math.random() - 0.5) * 0.22;
+        isBar[i] = 1.0;
+      } else {
+        // Radius: bias toward center (power distribution)
+        const r = Math.pow(Math.random(), 0.6);
+        radii[i] = r;
+
+        // Arm offset: logarithmic spiral
+        const armIndex = Math.floor(Math.random() * armCount);
+        const baseAngle = (armIndex / armCount) * Math.PI * 2;
+        const twist = armTwist * Math.log(r + 0.1);
+        // Dust particles have tighter scatter (sharper lanes), stars are more diffuse
+        const scatterRange = isThisDust ? 0.25 : 0.6;
+        const scatter = (Math.random() - 0.5) * scatterRange * (1.0 - r * 0.5);
+        armOffsets[i] = baseAngle + twist + scatter;
+        isBar[i] = 0.0;
+      }
 
       randoms[i] = Math.random();
       isDust[i] = isThisDust ? 1.0 : 0.0;
@@ -213,6 +247,7 @@ export function SpiralGalaxy({
     geo.setAttribute("aArmOffset", new THREE.BufferAttribute(armOffsets, 1));
     geo.setAttribute("aRandom", new THREE.BufferAttribute(randoms, 1));
     geo.setAttribute("aIsDust", new THREE.BufferAttribute(isDust, 1));
+    geo.setAttribute("aIsBar", new THREE.BufferAttribute(isBar, 1));
 
     const u = {
       uTime: { value: 0 },
@@ -231,7 +266,7 @@ export function SpiralGalaxy({
     };
 
     return { geometry: geo, uniforms: u };
-  }, [particleCount, armCount, armTwist, bulgeSize, discSize, rotationSpeed, dustFraction, dustOpacity]);
+  }, [particleCount, armCount, armTwist, bulgeSize, discSize, rotationSpeed, dustFraction, dustOpacity, barFraction, barLength]);
 
   useFrame(({ clock }) => {
     if (materialRef.current) {

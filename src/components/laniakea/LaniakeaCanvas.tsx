@@ -1,7 +1,7 @@
 "use client";
 
 import { Canvas, useThree, useFrame } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { OrbitControls, PerformanceMonitor } from "@react-three/drei";
 import { EffectComposer, Bloom, Vignette, SMAA } from "@react-three/postprocessing";
 import * as THREE from "three";
 import { useEffect, useRef } from "react";
@@ -105,6 +105,25 @@ const TOUR_POINTS: TourPoint[] = [
 
 const easeInOutCubic = (t: number) =>
   t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+
+/**
+ * Adaptive quality: watches the average frame rate and lowers/raises the
+ * renderer pixel ratio so the scene stays smooth on weak GPUs and sharp on
+ * strong ones. Hysteresis via onDecline/onIncline prevents oscillation.
+ */
+function AdaptiveQuality() {
+  const gl = useThree((s) => s.gl);
+  const maxDpr =
+    typeof window !== "undefined" ? Math.min(window.devicePixelRatio, 2) : 1;
+
+  return (
+    <PerformanceMonitor
+      bounds={() => [45, 60]}
+      onDecline={() => gl.setPixelRatio(1)}
+      onIncline={() => gl.setPixelRatio(maxDpr)}
+    />
+  );
+}
 
 /**
  * Camera controller that smoothly flies to a tour point.
@@ -333,6 +352,7 @@ export function LaniakeaCanvas({
       }}
       dpr={[1, 2]}
     >
+      <AdaptiveQuality />
       <color attach="background" args={["#02030a"]} />
       <fog attach="fog" args={["#02030a", 100, 220]} />
 
