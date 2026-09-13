@@ -716,9 +716,9 @@ export default function Home() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white"
+            className="hidden h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white sm:inline-flex"
             onClick={handleShareLink}
-            title="Скопировать ссылку на этот вид (или Ctrl+L)"
+            title="Скопировать ссылку на этот вид"
           >
             {shareCopied ? (
               <Check className="mr-1.5 h-3.5 w-3.5 text-emerald-400" />
@@ -734,7 +734,7 @@ export default function Home() {
           <Button
             variant="outline"
             size="sm"
-            className={`h-9 backdrop-blur-md ${
+            className={`hidden h-9 backdrop-blur-md sm:inline-flex ${
               screenshotTaken
                 ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-100"
                 : "border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white"
@@ -783,7 +783,7 @@ export default function Home() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white"
+            className="hidden h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white sm:inline-flex"
             onClick={() => setTimelineOpen(true)}
             title="Таймлайн открытий (Hubble 1929 → Tully 2014)"
           >
@@ -795,7 +795,7 @@ export default function Home() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white"
+            className="hidden h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white sm:inline-flex"
             onClick={() => setComparisonOpen(true)}
             title="Сравнение с соседними сверхскоплениями"
           >
@@ -808,7 +808,7 @@ export default function Home() {
             <Button
               variant="outline"
               size="icon"
-              className={`h-9 w-9 backdrop-blur-md ${
+              className={`hidden h-9 w-9 backdrop-blur-md sm:inline-flex ${
                 subtitlesEnabled
                   ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-100 hover:bg-emerald-400/25 hover:text-emerald-50"
                   : "border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white"
@@ -824,7 +824,7 @@ export default function Home() {
           <Button
             variant="outline"
             size="icon"
-            className="h-9 w-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white"
+            className="hidden h-9 w-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white sm:inline-flex"
             onClick={handleExportTour}
             title="Экспорт данных тура в JSON"
           >
@@ -835,7 +835,7 @@ export default function Home() {
           <Button
             variant="outline"
             size="sm"
-            className="h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white"
+            className="hidden h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white sm:inline-flex"
             onClick={() => setAboutOpen(true)}
           >
             <Compass className="mr-1.5 h-3.5 w-3.5" />

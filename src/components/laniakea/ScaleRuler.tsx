@@ -70,7 +70,7 @@ export function ScaleRuler({ cameraPos, cameraTarget }: ScaleRulerProps) {
   if (rulerPx < 30 || rulerPx > 300) return null;
 
   return (
-    <div className="pointer-events-none absolute bottom-32 left-4 z-20 sm:bottom-36 sm:left-24">
+    <div className="pointer-events-none absolute bottom-52 left-4 z-20 sm:bottom-36 sm:left-24">
       <div className="flex items-end gap-2">
         {/* Ruler bar */}
         <div className="flex flex-col items-start">

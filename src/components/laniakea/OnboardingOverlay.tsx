@@ -81,7 +81,7 @@ export function OnboardingOverlay({ onTourStart }: OnboardingOverlayProps) {
     },
     {
       icon: Volume2,
-      title: "Аудио-тур голосом Дмитрий",
+      title: "Аудио-тур голосом Дмитрия",
       description:
         "Включите аудио-тур — 7 точек интереса озвучиваются мужским голосом «Дмитрий». Клавиша Space переключает аудио.",
       color: "text-purple-300",

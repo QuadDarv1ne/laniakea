@@ -1021,7 +1021,7 @@ function NamedGalaxyMarker({
       {/* Hover tooltip */}
       {hovered && (
         <Html
-          position={[0, 1.5, 0]}
+          position={[0, isSpiral ? 4.2 : 1.5, 0]}
           center
           distanceFactor={20}
           occlude={false}
