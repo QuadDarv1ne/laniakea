@@ -534,7 +534,7 @@ export default function Home() {
   const currentStop = TOUR_STOPS[tourIndex];
 
   return (
-    <main className="relative min-h-screen w-full overflow-hidden bg-[var(--cosmic-bg)] text-[var(--cosmic-text)]">
+    <main className="theme-cosmic relative min-h-screen w-full overflow-hidden bg-[var(--cosmic-bg)] text-[var(--cosmic-text)]">
       {/* 3D Canvas - full screen */}
       <div className="absolute inset-0">
         <LaniakeaCanvas

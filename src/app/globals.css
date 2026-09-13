@@ -79,7 +79,11 @@
   --sidebar-ring: oklch(0.708 0 0);
 }
 
-.dark {
+/* .theme-cosmic — same dark palette, scoped to the 3D scene overlay UI
+   (panels inside <main> sit on a dark translucent background, so they need
+   light text). Dialogs portal to <body> and keep the light theme. */
+.dark,
+.theme-cosmic {
   /* Dark theme (for dialogs/modals) */
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
