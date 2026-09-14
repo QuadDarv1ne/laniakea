@@ -358,19 +358,19 @@ export default function Home() {
   }, []);
 
   const handleToggleAudio = useCallback(() => {
-    setAudioEnabled((prev) => {
-      const next = !prev;
-      if (!next) {
-        stopSpeech();
-      } else if (speechSupported) {
-        // Start narrating current stop
-        const stop = TOUR_STOPS[tourIndex];
-        const narration = TOUR_NARRATION[stop.narrationKey];
-        if (narration) speak(narration);
-      }
-      return next;
-    });
-  }, [tourIndex, speechSupported, speak, stopSpeech]);
+    // Compute the next value outside the updater: state updaters must be
+    // pure (side effects like speak() would run twice under StrictMode).
+    const next = !audioEnabled;
+    setAudioEnabled(next);
+    if (!next) {
+      stopSpeech();
+    } else if (speechSupported) {
+      // Start narrating current stop
+      const stop = TOUR_STOPS[tourIndex];
+      const narration = TOUR_NARRATION[stop.narrationKey];
+      if (narration) speak(narration);
+    }
+  }, [audioEnabled, tourIndex, speechSupported, speak, stopSpeech]);
 
   const handleShareLink = useCallback(async () => {
     try {

@@ -61,11 +61,12 @@ const TOUR_POINTS: TourPoint[] = [
     key: "overview",
   },
   {
-    // Position camera close to Milky Way
+    // Position camera close to Milky Way — far enough that the full
+    // barred-spiral disc (radius ~3.6 units) fits comfortably in frame
     position: [
-      MW_SCENE[0] + 8,
-      MW_SCENE[1] + 5,
-      MW_SCENE[2] + 8,
+      MW_SCENE[0] + 11,
+      MW_SCENE[1] + 6.5,
+      MW_SCENE[2] + 11,
     ],
     target: MW_SCENE,
     label: "Млечный Путь",

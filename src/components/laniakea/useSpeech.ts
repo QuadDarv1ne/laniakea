@@ -193,8 +193,12 @@ export function useSpeech(options: UseSpeechOptions = {}) {
           URL.revokeObjectURL(url);
         };
         // For API mode, use real timeupdate events for accurate progress
+        // (the estimated-duration interval is only a fallback until the
+        // first real timeupdate arrives, otherwise the two fight each other
+        // and the progress bar jitters back and forth).
         audio.ontimeupdate = () => {
           if (audio.duration && isFinite(audio.duration)) {
+            clearProgressInterval();
             setProgress(audio.currentTime / audio.duration);
           }
         };

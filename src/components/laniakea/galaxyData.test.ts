@@ -52,15 +52,25 @@ describe("compact dataset serialization", () => {
     { sgl: 121, sgb: -22, distance: 0.78, type: "spiral", velocity: -110, magnitude: -21.5 },
   ];
 
-  test("roundtrip preserves galaxy fields", () => {
+  test("roundtrip preserves galaxy fields within serialization precision", () => {
     const restored = fromCompactDataset(toCompactDataset(sample));
     expect(restored).toHaveLength(sample.length);
     for (let i = 0; i < sample.length; i++) {
-      expect(restored[i].sgl).toBeCloseTo(sample[i].sgl, 6);
-      expect(restored[i].sgb).toBeCloseTo(sample[i].sgb, 6);
-      expect(restored[i].distance).toBeCloseTo(sample[i].distance, 6);
+      // sgl/sgb/magnitude round to 2 decimals, distance to 3
+      expect(restored[i].sgl).toBeCloseTo(sample[i].sgl, 2);
+      expect(restored[i].sgb).toBeCloseTo(sample[i].sgb, 2);
+      expect(restored[i].distance).toBeCloseTo(sample[i].distance, 3);
       expect(restored[i].type).toBe(sample[i].type);
     }
+  });
+
+  test("serializes without long float artifacts", () => {
+    const field = generateRealisticGalaxyField(2000, 42);
+    const json = JSON.stringify(toCompactDataset(field));
+    // The seeded RNG produces values like 121.00000000000001; rounding in
+    // toCompactDataset must eliminate 6+ digit tails from the payload.
+    const longDecimals = json.match(/\d+\.\d{6,}/g) ?? [];
+    expect(longDecimals).toHaveLength(0);
   });
 
   test("duplicate names share one entry in the names table", () => {

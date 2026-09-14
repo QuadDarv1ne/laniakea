@@ -90,9 +90,13 @@ export function useAmbientSound() {
     const bufferSize = 2 * ctx.sampleRate;
     const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
     const output = noiseBuffer.getChannelData(0);
+    // Brown noise (integrated white): random walk with leaky integration
+    // for a softer, ocean-like rumble — plain white noise sounds like hiss.
+    let last = 0;
     for (let i = 0; i < bufferSize; i++) {
-      // Brown noise (integrated white) for softer, ocean-like texture
-      output[i] = (Math.random() * 2 - 1) * 0.02;
+      const white = Math.random() * 2 - 1;
+      last = (last + 0.02 * white) / 1.02;
+      output[i] = last * 3.5;
     }
     const noise = ctx.createBufferSource();
     noise.buffer = noiseBuffer;

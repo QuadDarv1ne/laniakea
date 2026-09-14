@@ -191,6 +191,20 @@ export function buildDataset(count: number = 18000, seed: number = 42): Galaxy[]
 }
 
 /**
+ * Round to a fixed number of decimals, avoiding float artifacts.
+ * The seeded RNG produces values like 121.00000000000001 — serializing them
+ * raw inflates the JSON payload by ~30%. 0.01 deg / 0.001 Mpc precision is
+ * far below anything visible at scene scale (1 Mpc = 0.55 units).
+ */
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
+}
+
+function round3(n: number): number {
+  return Math.round(n * 1000) / 1000;
+}
+
+/**
  * Convert a Galaxy[] to the compact serialization format for the API response.
  */
 export function toCompactDataset(galaxies: Galaxy[]): CompactDataset {
@@ -209,12 +223,12 @@ export function toCompactDataset(galaxies: Galaxy[]): CompactDataset {
       }
     }
     return [
-      g.sgl,
-      g.sgb,
-      g.distance,
+      round2(g.sgl),
+      round2(g.sgb),
+      round3(g.distance),
       TYPE_INDICES[g.type],
-      g.velocity ?? 0,
-      g.magnitude ?? -16,
+      Math.round(g.velocity ?? 0),
+      round2(g.magnitude ?? -16),
       ...(nameIdx !== undefined ? [nameIdx] : []),
     ];
   });
