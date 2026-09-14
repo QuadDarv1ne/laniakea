@@ -32,6 +32,15 @@ interface LaniakeaCanvasProps {
   appliedCameraPos?: [number, number, number] | null;
   /** When set, immediately apply this camera target */
   appliedCameraTarget?: [number, number, number] | null;
+  /**
+   * Smoothly fly to an arbitrary point (not one of TOUR_POINTS).
+   * Each change of `trigger` starts a new flight.
+   */
+  customFly?: {
+    position: [number, number, number];
+    target: [number, number, number];
+    trigger: number;
+  } | null;
   /** Ref callback that receives the underlying canvas DOM element (for screenshots). */
   onCanvasReady?: (canvas: HTMLCanvasElement | null) => void;
 }
@@ -140,6 +149,7 @@ function CameraRig({
   controlsRef,
   appliedCameraPos,
   appliedCameraTarget,
+  customFly,
   onCameraMove,
   enableParallax,
 }: {
@@ -148,6 +158,11 @@ function CameraRig({
   controlsRef: React.MutableRefObject<any>;
   appliedCameraPos?: [number, number, number] | null;
   appliedCameraTarget?: [number, number, number] | null;
+  customFly?: {
+    position: [number, number, number];
+    target: [number, number, number];
+    trigger: number;
+  } | null;
   onCameraMove?: (pos: THREE.Vector3, target: THREE.Vector3) => void;
   enableParallax: boolean;
 }) {
@@ -229,6 +244,21 @@ function CameraRig({
       controlsRef.current.update();
     }
   }, [appliedCameraPos, appliedCameraTarget, camera, controlsRef]);
+
+  // Free-form flight to an arbitrary point (e.g. a random galaxy).
+  // Same easing/timing as tour flights; each new trigger restarts it.
+  useEffect(() => {
+    if (!customFly || customFly.trigger === 0) return;
+    startPosRef.current.copy(camera.position);
+    endPosRef.current.set(...customFly.position);
+    if (controlsRef.current) {
+      startTargetRef.current.copy(controlsRef.current.target);
+    }
+    endTargetRef.current.set(...customFly.target);
+    startTimeRef.current = performance.now();
+    animatingRef.current = true;
+    lastInteractionRef.current = performance.now();
+  }, [customFly, camera, controlsRef]);
 
   useFrame(() => {
     const now = performance.now();
@@ -342,6 +372,7 @@ export function LaniakeaCanvas({
   tourIndex,
   appliedCameraPos,
   appliedCameraTarget,
+  customFly,
   onCanvasReady,
 }: LaniakeaCanvasProps) {
   const controlsRef = useRef<any>(null);
@@ -401,6 +432,7 @@ export function LaniakeaCanvas({
         controlsRef={controlsRef}
         appliedCameraPos={appliedCameraPos}
         appliedCameraTarget={appliedCameraTarget}
+        customFly={customFly}
         onCameraMove={onCameraMove}
         enableParallax={enableParallax}
       />

@@ -14,7 +14,11 @@ import { ComparisonDialog } from "@/components/laniakea/ComparisonDialog";
 import { Subtitles } from "@/components/laniakea/Subtitles";
 import type { SelectionState } from "@/components/laniakea/LaniakeaScene";
 import { REGIONS, type RegionKey } from "@/components/laniakea/data";
-import { TOUR_NARRATION } from "@/components/laniakea/realGalaxies";
+import {
+  TOUR_NARRATION,
+  NOTABLE_GALAXIES,
+  supergalacticToCartesian,
+} from "@/components/laniakea/realGalaxies";
 import { useSpeech } from "@/components/laniakea/useSpeech";
 import { useAmbientSound } from "@/components/laniakea/useAmbientSound";
 import { MiniMap } from "@/components/laniakea/MiniMap";
@@ -40,6 +44,7 @@ import {
   Orbit,
   Download,
   Captions,
+  Dices,
 } from "lucide-react";
 
 const INITIAL_REGIONS: Record<RegionKey, boolean> = {
@@ -72,6 +77,9 @@ const FLY_TO_TOUR_INDEX: Record<string, number> = {
 
 // Round to 1 decimal to keep URL short
 const r1 = (n: number) => Math.round(n * 10) / 10;
+
+// Scene scale — must match MPC_TO_SCENE in LaniakeaScene.tsx / LaniakeaCanvas.tsx
+const MPC_TO_SCENE = 0.55;
 
 export default function Home() {
   const [visibleRegions, setVisibleRegions] =
@@ -120,6 +128,15 @@ export default function Home() {
   const [appliedCameraTarget, setAppliedCameraTarget] = useState<
     [number, number, number] | null
   >(null);
+
+  // Free-form camera flight (e.g. "random galaxy"): smoothly flies the camera
+  // to an arbitrary point, unlike TOUR_POINTS-based tourTrigger flights.
+  const [customFly, setCustomFly] = useState<{
+    position: [number, number, number];
+    target: [number, number, number];
+    trigger: number;
+  } | null>(null);
+  const customFlyTriggerRef = useRef(0);
 
   const {
     speak,
@@ -228,9 +245,21 @@ export default function Home() {
     [lastUrlUpdateRef],
   );
 
-  const handleSelect = useCallback((s: SelectionState) => {
-    setSelection(s);
+  // Below the sm breakpoint the side panels are toggled by hand and would
+  // stack under the info panel — hide them whenever something gets selected.
+  const collapsePanelsIfNarrow = useCallback(() => {
+    if (typeof window !== "undefined" && window.innerWidth < 640) {
+      setPanelsOpen(false);
+    }
   }, []);
+
+  const handleSelect = useCallback(
+    (s: SelectionState) => {
+      setSelection(s);
+      if (s.type !== "none") collapsePanelsIfNarrow();
+    },
+    [collapsePanelsIfNarrow],
+  );
 
   const handleBackgroundClick = useCallback(() => {
     setSelection({ type: "none" });
@@ -329,6 +358,44 @@ export default function Home() {
     },
     [],
   );
+
+  // Fly the camera to a random notable galaxy and open its info panel.
+  // Uses the same scene-space conversion as LaniakeaScene (supergalactic
+  // coordinates offset so the Great Attractor sits at the origin).
+  const handleRandomGalaxy = useCallback(() => {
+    const pool = NOTABLE_GALAXIES.filter((g) => g.distance > 0);
+    if (pool.length === 0) return;
+    const g = pool[Math.floor(Math.random() * pool.length)];
+
+    const gaPos = supergalacticToCartesian(162.0, -5.0, 62 * MPC_TO_SCENE);
+    const [gx, gy, gz] = supergalacticToCartesian(
+      g.sgl,
+      g.sgb,
+      g.distance * MPC_TO_SCENE,
+    );
+    const target: [number, number, number] = [
+      gx - gaPos[0],
+      (gy - gaPos[1]) * 0.5,
+      gz - gaPos[2],
+    ];
+
+    // Approach from the same horizontal direction, slightly above the plane,
+    // so the galaxy ends up centred with some context around it.
+    const horiz = Math.hypot(target[0], target[2]) || 1;
+    const dirX = target[0] / horiz;
+    const dirZ = target[2] / horiz;
+    const distance = 12;
+    const position: [number, number, number] = [
+      target[0] + dirX * distance,
+      target[1] + 5,
+      target[2] + dirZ * distance,
+    ];
+
+    customFlyTriggerRef.current += 1;
+    setCustomFly({ position, target, trigger: customFlyTriggerRef.current });
+    setSelection({ type: "galaxy", galaxy: g });
+    collapsePanelsIfNarrow();
+  }, [collapsePanelsIfNarrow]);
 
   // Export tour data to JSON
   const handleExportTour = useCallback(() => {
@@ -493,6 +560,13 @@ export default function Home() {
           setSelection({ type: "milkyWay" });
           goToTourStop(1, audioEnabled);
           break;
+        case "g":
+        case "G":
+        case "п":
+        case "П":
+          e.preventDefault();
+          handleRandomGalaxy();
+          break;
         case "?":
           e.preventDefault();
           setAboutOpen(true);
@@ -509,6 +583,7 @@ export default function Home() {
     handlePrevTour,
     handleResetView,
     handleScreenshot,
+    handleRandomGalaxy,
     goToTourStop,
     speak,
     stopSpeech,
@@ -557,6 +632,7 @@ export default function Home() {
           tourIndex={tourIndex}
           appliedCameraPos={appliedCameraPos}
           appliedCameraTarget={appliedCameraTarget}
+          customFly={customFly}
         />
       </div>
 
@@ -594,7 +670,7 @@ export default function Home() {
       <div className="pointer-events-none absolute inset-x-0 top-0 h-32 bg-linear-to-b from-[var(--cosmic-bg)]/95 via-[var(--cosmic-bg)]/60 to-transparent" />
 
       {/* Header */}
-      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex items-start justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
+      <header className="pointer-events-none absolute inset-x-0 top-0 z-20 flex flex-wrap items-start justify-between gap-3 px-4 py-4 sm:px-6 sm:py-5">
         <div className="pointer-events-auto flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-amber-400/30 bg-amber-400/10 backdrop-blur-md">
             <Telescope className="h-5 w-5 text-amber-300" />
@@ -767,79 +843,28 @@ export default function Home() {
             <span className="hidden md:inline">Найти нас</span>
           </Button>
 
+          {/* Random notable galaxy */}
+          <Button
+            variant="outline"
+            size="sm"
+            className="hidden h-9 border-fuchsia-400/30 bg-fuchsia-400/10 text-fuchsia-100 backdrop-blur-md hover:bg-fuchsia-400/20 hover:text-fuchsia-50 sm:inline-flex"
+            onClick={handleRandomGalaxy}
+            title="Перелёт к случайной именованной галактике (G)"
+          >
+            <Dices className="mr-1.5 h-3.5 w-3.5" />
+            <span className="hidden lg:inline">Случайная галактика</span>
+          </Button>
+
           {/* Reset view */}
           <Button
             variant="outline"
             size="sm"
             className="h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white"
             onClick={handleResetView}
-            title="Сбросить вид"
+            title="Сбросить вид и выключить тур"
           >
             <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-            <span className="hidden lg:inline">Сбросить вид</span>
-          </Button>
-
-          {/* Timeline */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white sm:inline-flex"
-            onClick={() => setTimelineOpen(true)}
-            title="Таймлайн открытий (Hubble 1929 → Tully 2014)"
-          >
-            <History className="mr-1.5 h-3.5 w-3.5" />
-            <span className="hidden lg:inline">История</span>
-          </Button>
-
-          {/* Comparison */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white sm:inline-flex"
-            onClick={() => setComparisonOpen(true)}
-            title="Сравнение с соседними сверхскоплениями"
-          >
-            <Orbit className="mr-1.5 h-3.5 w-3.5" />
-            <span className="hidden lg:inline">Сравнение</span>
-          </Button>
-
-          {/* Subtitles toggle */}
-          {speechSupported && (
-            <Button
-              variant="outline"
-              size="icon"
-              className={`hidden h-9 w-9 backdrop-blur-md sm:inline-flex ${
-                subtitlesEnabled
-                  ? "border-emerald-400/40 bg-emerald-400/15 text-emerald-100 hover:bg-emerald-400/25 hover:text-emerald-50"
-                  : "border-white/15 bg-white/5 text-white hover:bg-white/10 hover:text-white"
-              }`}
-              onClick={() => setSubtitlesEnabled((v) => !v)}
-              title={subtitlesEnabled ? "Выключить субтитры" : "Включить субтитры"}
-            >
-              <Captions className="h-3.5 w-3.5" />
-            </Button>
-          )}
-
-          {/* Export tour JSON */}
-          <Button
-            variant="outline"
-            size="icon"
-            className="hidden h-9 w-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white sm:inline-flex"
-            onClick={handleExportTour}
-            title="Экспорт данных тура в JSON"
-          >
-            <Download className="h-3.5 w-3.5" />
-          </Button>
-
-          {/* About */}
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden h-9 border-white/15 bg-white/5 text-white backdrop-blur-md hover:bg-white/10 hover:text-white sm:inline-flex"
-            onClick={() => setAboutOpen(true)}
-          >
-            <Compass className="mr-1.5 h-3.5 w-3.5" />
-            <span className="hidden lg:inline">О проекте</span>
+            <span className="hidden md:inline">Сброс</span>
           </Button>
         </div>
       </header>
@@ -850,6 +875,17 @@ export default function Home() {
           panelsOpen ? "block" : "hidden sm:block"
         }`}
       >
+        {/* Mobile-only random galaxy: the header button is hidden below sm */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full border-fuchsia-400/30 bg-fuchsia-400/10 text-fuchsia-100 backdrop-blur-md hover:bg-fuchsia-400/20 hover:text-fuchsia-50 sm:hidden"
+          onClick={handleRandomGalaxy}
+          title="Перелёт к случайной именованной галактике"
+        >
+          <Dices className="mr-1.5 h-3.5 w-3.5" />
+          Случайная галактика
+        </Button>
         <ControlPanel
           visibleRegions={visibleRegions}
           showNeighbor={showNeighbor}
@@ -882,7 +918,7 @@ export default function Home() {
 
       {/* Right panel: info on selection */}
       <aside
-        className={`absolute right-3 top-20 z-30 w-72 sm:right-5 sm:top-24 sm:w-80 ${
+        className={`absolute left-3 right-3 top-20 z-30 sm:left-auto sm:right-5 sm:top-24 sm:w-80 ${
           selection.type === "none" ? "hidden sm:block" : ""
         }`}
       >
@@ -935,6 +971,7 @@ export default function Home() {
                 <HotkeyRow keys={["←", "→"]} action="тур назад/вперёд" />
                 <HotkeyRow keys={["Space"]} action="аудио (голос: Дмитрий)" />
                 <HotkeyRow keys={["M"]} action="найти нас" />
+                <HotkeyRow keys={["G"]} action="случайная галактика" />
                 <HotkeyRow keys={["R"]} action="сброс вида" />
                 <HotkeyRow keys={["S"]} action="снимок PNG" />
                 <HotkeyRow keys={["B"]} action="Bloom" />
@@ -981,17 +1018,17 @@ export default function Home() {
       </div>
 
       {/* Bottom stats footer */}
-      <footer className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-4 pb-4 sm:px-6 sm:pb-5">
-        <div className="pointer-events-auto mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-5 gap-y-1.5 rounded-lg border border-[var(--cosmic-border)] bg-[var(--cosmic-card)] px-4 py-2.5 backdrop-blur-md">
+      <footer className="pointer-events-none absolute inset-x-0 bottom-0 z-20 px-3 pb-3 sm:px-6 sm:pb-5">
+        <div className="pointer-events-auto mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-x-3 gap-y-1 rounded-lg border border-[var(--cosmic-border)] bg-[var(--cosmic-card)] px-3 py-1.5 backdrop-blur-md sm:gap-x-5 sm:px-4 sm:py-2.5">
           <Stat label="Диаметр" value="~520 млн св. лет" />
           <Dot />
           <Stat label="Галактик" value="~100 000" />
           <Dot />
           <Stat label="Масса" value="10¹⁷ M☉" />
           <Dot />
-          <Stat label="Карта" value="2014" />
+          <Stat label="Карта" value="2014" mobileHidden />
           <Dot />
-          <Stat label="Каталог" value="Cosmicflows-2" />
+          <Stat label="Каталог" value="Cosmicflows-2" mobileHidden />
         </div>
       </footer>
 
@@ -1030,13 +1067,26 @@ export default function Home() {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  mobileHidden = false,
+}: {
+  label: string;
+  value: string;
+  /** Hide on narrow screens to keep the footer on a single row */
+  mobileHidden?: boolean;
+}) {
   return (
-    <div className="flex items-baseline gap-1.5">
-      <span className="text-[10px] uppercase tracking-wide text-white/40">
+    <div
+      className={`flex items-baseline gap-1.5 ${mobileHidden ? "hidden sm:flex" : ""}`}
+    >
+      <span className="text-[9px] uppercase tracking-wide text-white/40 sm:text-[10px]">
         {label}
       </span>
-      <span className="text-xs font-medium text-white/90">{value}</span>
+      <span className="text-[11px] font-medium text-white/90 sm:text-xs">
+        {value}
+      </span>
     </div>
   );
 }
