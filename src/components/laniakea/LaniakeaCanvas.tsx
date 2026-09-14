@@ -9,6 +9,7 @@ import { Suspense } from "react";
 import { LaniakeaScene, type SelectionState } from "./LaniakeaScene";
 import { REGIONS, GREAT_ATTRACTOR, MILKY_WAY, type RegionKey } from "./data";
 import { supergalacticToCartesian } from "./realGalaxies";
+import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 
 interface LaniakeaCanvasProps {
   visibleRegions: Record<RegionKey, boolean>;
@@ -151,6 +152,10 @@ function CameraRig({
   enableParallax: boolean;
 }) {
   const { camera, gl } = useThree();
+  const reducedMotion = usePrefersReducedMotion();
+  // Idle parallax drift is a non-essential motion — skip it entirely when the
+  // user has requested reduced motion.
+  const parallaxActive = enableParallax && !reducedMotion;
   const animatingRef = useRef(false);
   const startTimeRef = useRef(0);
   const startPosRef = useRef(new THREE.Vector3());
@@ -168,7 +173,7 @@ function CameraRig({
 
   // Track mouse position for parallax (window-level)
   useEffect(() => {
-    if (!enableParallax) return;
+    if (!parallaxActive) return;
     const handleMouseMove = (e: MouseEvent) => {
       // Normalize to [-1, 1]
       const w = window.innerWidth;
@@ -180,11 +185,11 @@ function CameraRig({
     };
     window.addEventListener("mousemove", handleMouseMove);
     return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, [enableParallax]);
+  }, [parallaxActive]);
 
   // Listen for OrbitControls interaction (start/stop)
   useEffect(() => {
-    if (!enableParallax) return;
+    if (!parallaxActive) return;
     const controls = controlsRef.current;
     if (!controls) return;
     const onStart = () => {
@@ -194,7 +199,7 @@ function CameraRig({
     return () => {
       controls.removeEventListener("start", onStart);
     };
-  }, [enableParallax, controlsRef]);
+  }, [parallaxActive, controlsRef]);
 
   // Tour trigger - fly to TOUR_POINTS[tourIndex]
   useEffect(() => {
@@ -252,7 +257,7 @@ function CameraRig({
       if (t >= 1) {
         animatingRef.current = false;
       }
-    } else if (enableParallax) {
+    } else if (parallaxActive) {
       // Idle parallax: after 2s of no interaction, drift camera slightly based on mouse
       const idleTime = now - lastInteractionRef.current;
       const idleFactor = Math.min(1, Math.max(0, (idleTime - 1500) / 1500));

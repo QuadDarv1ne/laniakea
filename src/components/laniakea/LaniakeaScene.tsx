@@ -20,6 +20,7 @@ import {
 } from "./realGalaxies";
 import { GalaxyShaderPointsMaterial } from "./GalaxyShader";
 import { SpiralGalaxy } from "./SpiralGalaxy";
+import { usePrefersReducedMotion } from "@/hooks/use-prefers-reduced-motion";
 
 export interface SelectionState {
   type: "region" | "greatAttractor" | "neighbor" | "milkyWay" | "galaxy" | "none";
@@ -346,6 +347,7 @@ function starColor(rand: number): THREE.Color {
  * fraction of bright "hero" stars that get diffraction spikes from the shader.
  */
 function Starfield({ count = 4000 }: { count?: number }) {
+  const reducedMotion = usePrefersReducedMotion();
   const { positions, colors, sizes } = useMemo(() => {
     const positions = new Float32Array(count * 3);
     const colors = new Float32Array(count * 3);
@@ -393,7 +395,10 @@ function Starfield({ count = 4000 }: { count?: number }) {
           count={sizes.length}
         />
       </bufferGeometry>
-      <GalaxyShaderPointsMaterial sizeScale={0.4} twinkle={0.18} />
+      <GalaxyShaderPointsMaterial
+        sizeScale={0.4}
+        twinkle={reducedMotion ? 0 : 0.18}
+      />
     </points>
   );
 }
@@ -417,6 +422,7 @@ function RealGalaxyCloud({
   onPointerOver?: (e: any) => void;
   onPointerOut?: (e: any) => void;
 }) {
+  const reducedMotion = usePrefersReducedMotion();
   return (
     <points
       onClick={onClick}
@@ -440,7 +446,7 @@ function RealGalaxyCloud({
           count={sizes.length}
         />
       </bufferGeometry>
-      <GalaxyShaderPointsMaterial sizeScale={1.0} />
+      <GalaxyShaderPointsMaterial twinkle={reducedMotion ? 0 : 0.12} />
     </points>
   );
 }
@@ -463,6 +469,7 @@ function SchematicGalaxyCloud({
   onPointerOver?: (e: any) => void;
   onPointerOut?: (e: any) => void;
 }) {
+  const reducedMotion = usePrefersReducedMotion();
   return (
     <points
       onClick={onClick}
@@ -486,7 +493,7 @@ function SchematicGalaxyCloud({
           count={sizes.length}
         />
       </bufferGeometry>
-      <GalaxyShaderPointsMaterial sizeScale={1.0} />
+      <GalaxyShaderPointsMaterial twinkle={reducedMotion ? 0 : 0.12} />
     </points>
   );
 }
@@ -529,32 +536,37 @@ function GreatAttractorMesh({
   const glow2Ref = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
   const ring2Ref = useRef<THREE.Mesh>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  // Amplitude multiplier: 0 when the user asked for reduced motion
+  const pulse = reducedMotion ? 0 : 1;
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     if (innerRef.current) {
-      const s = 1 + Math.sin(t * 1.5) * 0.1;
+      const s = 1 + Math.sin(t * 1.5) * 0.1 * pulse;
       innerRef.current.scale.setScalar(s);
     }
     if (glowRef.current) {
-      const s = 1.6 + Math.sin(t * 1.5 + 0.5) * 0.14;
+      const s = 1.6 + Math.sin(t * 1.5 + 0.5) * 0.14 * pulse;
       glowRef.current.scale.setScalar(s);
       (glowRef.current.material as THREE.MeshBasicMaterial).opacity =
-        0.22 + (Math.sin(t * 1.5) + 1) * 0.06;
+        0.22 + (Math.sin(t * 1.5) + 1) * 0.06 * pulse;
     }
     if (glow2Ref.current) {
-      const s = 2.6 + Math.sin(t * 1.5 + 1.0) * 0.2;
+      const s = 2.6 + Math.sin(t * 1.5 + 1.0) * 0.2 * pulse;
       glow2Ref.current.scale.setScalar(s);
       (glow2Ref.current.material as THREE.MeshBasicMaterial).opacity =
-        0.08 + (Math.sin(t * 1.5 + 1) + 1) * 0.03;
+        0.08 + (Math.sin(t * 1.5 + 1) + 1) * 0.03 * pulse;
     }
     if (ringRef.current) {
-      ringRef.current.rotation.z = t * 0.4;
-      ringRef.current.rotation.x = Math.PI / 2 + Math.sin(t * 0.3) * 0.2;
+      ringRef.current.rotation.z = t * 0.4 * pulse;
+      ringRef.current.rotation.x =
+        Math.PI / 2 + Math.sin(t * 0.3) * 0.2 * pulse;
     }
     if (ring2Ref.current) {
-      ring2Ref.current.rotation.z = -t * 0.25;
-      ring2Ref.current.rotation.y = Math.PI / 4 + Math.sin(t * 0.4) * 0.15;
+      ring2Ref.current.rotation.z = -t * 0.25 * pulse;
+      ring2Ref.current.rotation.y =
+        Math.PI / 4 + Math.sin(t * 0.4) * 0.15 * pulse;
     }
   });
 
@@ -785,6 +797,8 @@ function MilkyWayMarker({
   const haloRef = useRef<THREE.Mesh>(null);
   const halo2Ref = useRef<THREE.Mesh>(null);
   const beamRef = useRef<THREE.Mesh>(null);
+  const reducedMotion = usePrefersReducedMotion();
+  const pulse = reducedMotion ? 0 : 1;
 
   const { beamLength, beamQuat } = useMemo(() => {
     const mw = new THREE.Vector3(...position);
@@ -800,24 +814,24 @@ function MilkyWayMarker({
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     if (coreRef.current) {
-      const s = 1 + Math.sin(t * 3) * 0.2;
+      const s = 1 + Math.sin(t * 3) * 0.2 * pulse;
       coreRef.current.scale.setScalar(s);
     }
     if (haloRef.current) {
-      const s = 1.6 + Math.sin(t * 2 + 0.5) * 0.25;
+      const s = 1.6 + Math.sin(t * 2 + 0.5) * 0.25 * pulse;
       haloRef.current.scale.setScalar(s);
       (haloRef.current.material as THREE.MeshBasicMaterial).opacity =
-        0.4 + (Math.sin(t * 2) + 1) * 0.1;
+        0.4 + (Math.sin(t * 2) + 1) * 0.1 * pulse;
     }
     if (halo2Ref.current) {
-      const s = 3 + Math.sin(t * 2 + 1.2) * 0.4;
+      const s = 3 + Math.sin(t * 2 + 1.2) * 0.4 * pulse;
       halo2Ref.current.scale.setScalar(s);
       (halo2Ref.current.material as THREE.MeshBasicMaterial).opacity =
-        0.1 + (Math.sin(t * 2 + 1) + 1) * 0.04;
+        0.1 + (Math.sin(t * 2 + 1) + 1) * 0.04 * pulse;
     }
     if (beamRef.current) {
       const m = beamRef.current.material as THREE.MeshBasicMaterial;
-      m.opacity = 0.18 + (Math.sin(t * 1.2) + 1) * 0.07;
+      m.opacity = 0.18 + (Math.sin(t * 1.2) + 1) * 0.07 * pulse;
     }
   });
 
