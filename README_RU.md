@@ -225,3 +225,13 @@ Web Speech API браузера.
 ## Лицензия
 
 См. файл [LICENSE](LICENSE).
+
+## История звёзд
+
+<a href="https://www.star-history.com/?repos=QuadDarv1ne%2Flaniakea&type=date&legend=top-left">
+<picture>
+<source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=QuadDarv1ne/laniakea&type=date&theme=dark&legend=top-left" />
+<source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=QuadDarv1ne/laniakea&type=date&legend=top-left" />
+<img alt="График истории звёзд" src="https://api.star-history.com/chart?repos=QuadDarv1ne/laniakea&type=date&legend=top-left" />
+</picture>
+</a>
